@@ -1,14 +1,13 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.schemas.user import UserCreate
-from app.services.user import create_user
-
-from app.schemas.user import UserLogin
-from app.services.user import authenticate_user
+from app.services.user import create_user, authenticate_user
 from app.core.security import create_access_token
-from fastapi import HTTPException
+from app.api.dependencies import get_current_user
+from app.models.user import User
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -23,16 +22,16 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
         "email": new_user.email,
     }
 
-@router.post("/login")
-def login(user_data: UserLogin, db: Session = Depends(get_db)):
-    """
-    Login user and return JWT token.
-    """
 
+@router.post("/login")
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
     user = authenticate_user(
         db,
-        user_data.email,
-        user_data.password,
+        form_data.username,   # This contains the email
+        form_data.password,
     )
 
     if not user:
@@ -48,4 +47,16 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
     return {
         "access_token": access_token,
         "token_type": "bearer",
+    }
+
+
+@router.get("/me")
+def get_me(current_user: User = Depends(get_current_user)):
+    """
+    Return the currently logged-in user's information.
+    """
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": current_user.email,
     }

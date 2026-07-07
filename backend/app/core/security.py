@@ -6,6 +6,7 @@ from jose import JWTError, jwt
 
 from app.core.config import settings
 
+
 # Configure password hashing
 pwd_context = CryptContext(
     schemes=["bcrypt"],
