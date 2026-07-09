@@ -1,0 +1,21 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Environment
+.env
+
+# Uploads
+uploads/
+
+# Generated resumes
+generated_resumes/
+
+# PDF files
+*.pdf
+
+# Pytest
+.pytest_cache/
+
+# Mypy
+.mypy_cache/

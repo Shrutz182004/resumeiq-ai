@@ -1,6 +1,6 @@
 from sqlalchemy import Boolean, DateTime, Integer, String
 from sqlalchemy.sql import func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
@@ -27,6 +27,11 @@ class User(Base):
         String(255),
         nullable=False
     )
+
+    resumes: Mapped[list["Resume"]] = relationship(
+    "Resume",
+    back_populates="user"
+   )
 
     is_active: Mapped[bool] = mapped_column(
         Boolean,

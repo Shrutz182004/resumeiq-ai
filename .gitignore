@@ -1,17 +1,24 @@
-# Python cache
+# Python
 __pycache__/
 *.py[cod]
 *.pyo
 
-# Virtual environment
+# Virtual Environment
 venv/
-backend/venv/
+.venv/
 
-# Environment variables
+# Environment Variables
 .env
 
 # VS Code
 .vscode/
 
-# macOS
+# OS Files
 .DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+
+# Logs
+*.log
