@@ -28,6 +28,9 @@ from sqlalchemy import func
 from app.schemas.chat import ResumeChatRequest
 from app.services.ai_service import chat_with_resume
 
+from app.schemas.bullet import BulletImproveRequest
+from app.services.ai_service import improve_bullet_point
+
 router = APIRouter(prefix="/resumes", tags=["Resumes"])
 
 
@@ -61,8 +64,8 @@ def upload_resume(
         "analysis": analysis
     }
 
-@router.post("/match")
-def match_resume(
+@router.post("/job-match")
+def job_match(
     request: JobMatchRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -80,23 +83,45 @@ def match_resume(
         return {"error": "Resume not found"}
 
     analysis = compare_resume_with_job(
-    resume.extracted_text,
-    request.job_description
-)
+        resume.extracted_text,
+        request.job_description,
+    )
 
-# Save job match history
     job_match = JobMatch(
-       resume_id=resume.id,
-       job_description=request.job_description,
-       match_score=analysis.get("match_score", 0),
-       analysis=str(analysis)
-)
+        resume_id=resume.id,
+        job_description=request.job_description,
+
+        match_score=analysis.get("match_score", 0),
+        ats_score=analysis.get("ats_score", 0),
+
+        matched_skills=str(analysis.get("matched_skills", [])),
+        missing_skills=str(analysis.get("missing_skills", [])),
+        missing_keywords=str(analysis.get("missing_keywords", [])),
+
+        strengths=str(analysis.get("strengths", [])),
+        resume_improvements=str(
+            analysis.get("resume_improvements", [])
+        ),
+
+        interview_probability=analysis.get(
+            "interview_probability", ""
+        ),
+        overall_feedback=analysis.get(
+            "overall_feedback", ""
+        ),
+
+        analysis=str(analysis),
+    )
 
     db.add(job_match)
     db.commit()
+    db.refresh(job_match)
 
-    return analysis
-
+    return {
+        "message": "Job description matched successfully.",
+        "job_match_id": job_match.id,
+        "result": analysis,
+    }
 @router.post("/rewrite")
 def rewrite_uploaded_resume(
     request: RewriteResumeRequest,
@@ -224,4 +249,15 @@ def resume_chat(
 
     return {
         "answer": answer
+    }
+
+@router.post("/improve-bullet")
+def improve_bullet(
+    request: BulletImproveRequest,
+):
+    improved = improve_bullet_point(request.bullet)
+
+    return {
+        "original_bullet": request.bullet,
+        "improved_bullet": improved,
     }

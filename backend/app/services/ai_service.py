@@ -49,43 +49,72 @@ import json
 
 def compare_resume_with_job(resume_text: str, job_description: str):
     prompt = f"""
-You are an expert ATS Resume Analyzer.
+You are an expert ATS Resume Reviewer and Career Coach.
 
-Compare the resume with the job description.
+Compare the candidate's resume with the given Job Description.
 
-Return ONLY valid JSON.
+Analyze carefully and return ONLY valid JSON.
 
-Format:
+Do NOT return markdown.
+Do NOT return explanation.
+Do NOT wrap JSON inside ```.
+
+Return this exact JSON format:
 
 {{
     "match_score": 0,
+    "ats_score": 0,
     "matched_skills": [],
     "missing_skills": [],
     "missing_keywords": [],
-    "suggestions": []
+    "strengths": [],
+    "resume_improvements": [],
+    "interview_probability": "",
+    "overall_feedback": ""
 }}
 
+Instructions:
+
+- Match Score should be between 0 and 100.
+- ATS Score should be between 0 and 100.
+- Mention only skills actually present in the resume.
+- Never invent projects or experience.
+- Suggest practical improvements.
+- Interview probability should be one of:
+    - High
+    - Medium
+    - Low
+
 Resume:
+
 {resume_text}
 
 Job Description:
+
 {job_description}
 """
 
     response = model.generate_content(prompt)
 
+    text = response.text.strip()
+
+    if text.startswith("```"):
+        text = text.replace("```json", "").replace("```", "").strip()
+
     try:
-        return json.loads(response.text)
+        return json.loads(text)
     except Exception:
         return {
-            "match_score": 0,
-            "matched_skills": [],
-            "missing_skills": [],
-            "missing_keywords": [],
-            "suggestions": [
-                "Failed to parse AI response."
-            ]
-        }
+    "match_score": 0,
+    "ats_score": 0,
+    "matched_skills": [],
+    "missing_skills": [],
+    "missing_keywords": [],
+    "strengths": [],
+    "resume_improvements": [],
+    "interview_probability": "",
+    "overall_feedback": ""
+}
 def rewrite_resume(resume_text: str):
     prompt = f"""
 You are an expert resume writer.
@@ -135,3 +164,27 @@ If possible:
     response = model.generate_content(prompt)
 
     return response.text
+
+def improve_bullet_point(bullet: str):
+    prompt = f"""
+You are an expert ATS Resume Writer.
+
+Your job is to improve ONLY the given resume bullet point.
+
+Rules:
+- Keep it concise.
+- Use strong action verbs.
+- Add ATS-friendly keywords where appropriate.
+- Make it achievement-oriented.
+- Do NOT invent technologies or numbers.
+- Return ONLY the improved bullet.
+- Do not add explanations.
+
+Bullet:
+
+{bullet}
+"""
+
+    response = model.generate_content(prompt)
+
+    return response.text.strip()

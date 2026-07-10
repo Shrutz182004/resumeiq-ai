@@ -1,4 +1,3 @@
-from sqlalchemy import Column, Integer, Text, ForeignKey
 from sqlalchemy import Column, Integer, ForeignKey, Text
 from sqlalchemy.orm import relationship
 
@@ -18,6 +17,22 @@ class JobMatch(Base):
     job_description = Column(Text)
 
     match_score = Column(Integer)
+
+    ats_score = Column(Integer)
+
+    matched_skills = Column(Text)
+
+    missing_skills = Column(Text)
+
+    missing_keywords = Column(Text)
+
+    strengths = Column(Text)
+
+    resume_improvements = Column(Text)
+
+    interview_probability = Column(Text)
+
+    overall_feedback = Column(Text)
 
     analysis = Column(Text)
 
