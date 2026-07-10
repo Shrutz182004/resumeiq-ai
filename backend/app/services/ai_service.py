@@ -188,3 +188,35 @@ Bullet:
     response = model.generate_content(prompt)
 
     return response.text.strip()
+
+def generate_interview_questions(resume_text: str):
+    prompt = f"""
+You are an expert Technical Interviewer.
+
+Based on the following resume, generate interview questions.
+
+Return ONLY valid JSON.
+
+Format:
+
+{{
+    "hr_questions": [],
+    "technical_questions": [],
+    "project_questions": [],
+    "dsa_questions": []
+}}
+
+Resume:
+
+{resume_text}
+"""
+
+    response = model.generate_content(prompt)
+
+    text = response.text.strip()
+
+    # Remove markdown if Gemini wraps JSON in ```json
+    if text.startswith("```"):
+        text = text.replace("```json", "").replace("```", "").strip()
+
+    return json.loads(text)

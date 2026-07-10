@@ -31,6 +31,9 @@ from app.services.ai_service import chat_with_resume
 from app.schemas.bullet import BulletImproveRequest
 from app.services.ai_service import improve_bullet_point
 
+from app.schemas.interview import InterviewQuestionRequest
+from app.services.ai_service import generate_interview_questions
+
 router = APIRouter(prefix="/resumes", tags=["Resumes"])
 
 
@@ -249,6 +252,33 @@ def resume_chat(
 
     return {
         "answer": answer
+    }
+
+@router.post("/interview-questions")
+def interview_questions(
+    request: InterviewQuestionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    resume = (
+        db.query(Resume)
+        .filter(
+            Resume.id == request.resume_id,
+            Resume.user_id == current_user.id
+        )
+        .first()
+    )
+
+    if not resume:
+        return {"error": "Resume not found"}
+
+    questions = generate_interview_questions(
+        resume.extracted_text
+    )
+
+    return {
+        "message": "Interview questions generated successfully.",
+        "questions": questions
     }
 
 @router.post("/improve-bullet")
